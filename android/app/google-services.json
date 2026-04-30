@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1097290903915",
+    "project_id": "afetcantam-63424",
+    "storage_bucket": "afetcantam-63424.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1097290903915:android:80819d98a2b1df2eb61c2e",
+        "android_client_info": {
+          "package_name": "com.example.afet_cantam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC3FTwFEN23taQavJxp_MxwL8s5yXuJGMg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
