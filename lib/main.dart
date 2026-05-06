@@ -1,4 +1,5 @@
 import 'package:afet_cantam/screens/register_screen.dart';
+import 'package:afet_cantam/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -66,7 +67,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home:
-          const RegisterScreen(), //const MyHomePage(title: 'Flutter Demo Home Page'),
+          const WelcomeScreen(), //const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

@@ -13,33 +13,31 @@ class AuthService {
     String name,
   ) async {
     try {
-      // 1. Kullanıcıyı oluştur
+      // 1. Kullanıcıyı Auth üzerinde oluştur
       UserCredential result = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      User? user = result.user;
-
-      if (user != null) {
-        // 2. Veritabanına yazma işlemini mutlaka 'await' ile bekle
-        await _firestore.collection('users').doc(user.uid).set({
-          'uid': user.uid,
+      if (result.user != null) {
+        // 2. Firestore'a dökümanı UID ile aç
+        // ÖNEMLİ: doc(result.user!.uid) kullanımı döküman isminin UID olmasını sağlar.
+        await _firestore.collection('users').doc(result.user!.uid).set({
+          'uid': result.user!.uid,
           'name': name,
-          'email': email,
-          'bag_id': user.uid,
-          'bloodType':
-              'Girilmemiş', // Profil sayfası hata almasın diye başlangıç değerleri
+          'email': email.trim(),
+          'bloodType': 'Girilmemiş',
           'allergies': 'Yok',
           'chronicIllness': 'Yok',
-          'createdAt':
-              FieldValue.serverTimestamp(), // Cihaz saati yerine sunucu saati
+          'createdAt': FieldValue.serverTimestamp(),
         });
-        return true; // Her şey başarılı
+
+        // Yazma işleminin Firebase tarafından onaylanmasını bekle
+        await Future.delayed(const Duration(milliseconds: 300));
+        return true;
       }
       return false;
     } catch (e) {
-      // Hata neyse buraya düşecek (Örn: email-already-in-use, permission-denied)
       print("🔥 KAYIT HATASI DETAYI: $e");
       return false;
     }

@@ -2,53 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/product_model.dart';
 import 'add_product_screen.dart';
-import 'profile_screen.dart'; // Profil sayfası import edildi
+import 'profile_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   final String bagId;
   const HomeScreen({super.key, required this.bagId});
 
-  // Kategori İkonu Yardımcı Fonksiyonu
-  IconData _getCategoryIcon(String category) {
+  // Kategoriye özel stil belirleme
+  Map<String, dynamic> _getCategoryStyle(String category) {
     switch (category) {
-      case 'Gıda': return Icons.fastfood;
-      case 'Sağlık': return Icons.medical_services;
-      case 'Hijyen': return Icons.clean_hands;
-      case 'Araç-Gereç': return Icons.build;
-      default: return Icons.inventory_2;
-    }
-  }
-
-  // Kategori Rengi Yardımcı Fonksiyonu
-  Color _getCategoryColor(String category) {
-    switch (category) {
-      case 'Gıda': return Colors.orange;
-      case 'Sağlık': return Colors.redAccent;
-      case 'Hijyen': return Colors.blue;
-      case 'Araç-Gereç': return Colors.teal;
-      default: return Colors.grey;
+      case 'Gıda': return {'icon': Icons.fastfood_rounded, 'color': Colors.orange};
+      case 'Sağlık': return {'icon': Icons.medication_rounded, 'color': Colors.redAccent};
+      case 'Hijyen': return {'icon': Icons.clean_hands_rounded, 'color': Colors.blue};
+      case 'Araç-Gereç': return {'icon': Icons.handyman_rounded, 'color': Colors.teal};
+      default: return {'icon': Icons.inventory_2_rounded, 'color': Colors.grey};
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text("Afet Çantası İçeriği"),
-        elevation: 4,
-        automaticallyImplyLeading: false,
-        // --- PROFİL İKONU BURAYA EKLENDİ ---
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
+        title: const Text(
+          "Afet Çantam",
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 22),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.account_circle, size: 30),
-            onPressed: () {
-              Navigator.push(
+          Padding(
+            padding: const EdgeInsets.only(right: 15.0),
+            child: GestureDetector(
+              onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(bagId: bagId)),
-              );
-            },
+                MaterialPageRoute(builder: (context) => ProfileScreen(bagId: bagId)),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD32F2F).withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.person_rounded, color: Color(0xFFD32F2F), size: 28),
+              ),
+            ),
           ),
         ],
       ),
@@ -59,78 +58,67 @@ class HomeScreen extends StatelessWidget {
             .collection('items')
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) return const Center(child: Text("Hata oluştu!"));
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data!.docs;
+          final docs = snapshot.data?.docs ?? [];
 
           if (docs.isEmpty) {
-            return const Center(
-              child: Text("Çantada henüz ürün yok. Hemen ekle!"),
-            );
+            return _buildEmptyState();
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.only(top: 10, bottom: 80),
+            padding: const EdgeInsets.all(20),
             itemCount: docs.length,
             itemBuilder: (context, index) {
               Product product = Product.fromMap(
                 docs[index].data() as Map<String, dynamic>, 
                 docs[index].id
               );
+              final style = _getCategoryStyle(product.category);
 
-              return Card(
-                elevation: 3,
-                margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.all(10),
-                  leading: CircleAvatar(
-                    radius: 25,
-                    backgroundColor: _getCategoryColor(product.category).withOpacity(0.2),
-                    child: Icon(
-                      _getCategoryIcon(product.category), 
-                      color: _getCategoryColor(product.category),
-                      size: 28,
+              return Container(
+                margin: const EdgeInsets.only(bottom: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(15),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: style['color'].withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Icon(style['icon'], color: style['color'], size: 30),
                   ),
                   title: Text(
                     product.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                   ),
-                  subtitle: Text(
-                    "Kategori: ${product.category}\nAdet: ${product.amount}",
-                    style: TextStyle(color: Colors.grey[700]),
+                  subtitle: Padding(
+                    padding: const EdgeInsets.only(top: 5),
+                    child: Row(
+                      children: [
+                        _buildBadge(product.category, style['color']),
+                        const SizedBox(width: 8),
+                        Text("Adet: ${product.amount}", style: TextStyle(color: Colors.grey[600])),
+                      ],
+                    ),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                    onPressed: () {
-                      // --- SİLME ONAY PENCERESİ ---
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Eşyayı Sil"),
-                          content: Text("${product.name} silinecek. Emin misiniz?"),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context),
-                              child: const Text("İptal"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                docs[index].reference.delete();
-                                Navigator.pop(context);
-                              },
-                              child: const Text("Sil", style: TextStyle(color: Colors.red)),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                    onPressed: () => _showDeleteDialog(context, docs[index].reference, product.name),
                   ),
-                  isThreeLine: true,
                 ),
               );
             },
@@ -138,14 +126,64 @@ class HomeScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddProductScreen(bagId: bagId)),
-          );
-        },
-        label: const Text("Yeni Eşya"),
-        icon: const Icon(Icons.add),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => AddProductScreen(bagId: bagId)),
+        ),
+        backgroundColor: const Color(0xFFD32F2F),
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text("Yeni Eşya Ekle", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+
+  // Yardımcı UI Fonksiyonları
+  Widget _buildBadge(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.inventory_2_outlined, size: 80, color: Colors.grey[300]),
+          const SizedBox(height: 20),
+          Text("Çantanız şu an boş", style: TextStyle(fontSize: 18, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+          const SizedBox(height: 8),
+          const Text("Eklemek için aşağıdaki butonu kullanın."),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context, DocumentReference ref, String name) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Eşyayı Sil"),
+        content: Text("$name çantanızdan çıkarılacak. Emin misiniz?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("İptal")),
+          TextButton(
+            onPressed: () {
+              ref.delete();
+              Navigator.pop(context);
+            },
+            child: const Text("Sil", style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
