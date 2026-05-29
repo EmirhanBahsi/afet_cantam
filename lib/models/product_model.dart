@@ -1,36 +1,39 @@
 class Product {
-  String id;
-  String name;
-  int amount;
-  String category;
-  String? expireDate; // Başlangıçta boş olabilir
+  final String id;
+  final String name;
+  final String category;
+  final int amount;
+  final String? expiryDate;
+
+  /* Modele son kullanma tarihini ekledim
+  eğer db den çekeceksen orada da eklemelisin yoksa
+  null olarak gözükecektir.
+   */
 
   Product({
     required this.id,
     required this.name,
-    required this.amount,
     required this.category,
-    this.expireDate,
+    required this.amount,
+    this.expiryDate,
   });
 
-  // Firestore'dan gelen veriyi modele çevirmek için
-  factory Product.fromMap(Map<String, dynamic> data, String id) {
-    return Product(
-      id: id,
-      name: data['name'] ?? '',
-      amount: data['amount'] ?? 0,
-      category: data['category'] ?? 'Genel',
-      expireDate: data['expireDate'],
-    );
-  }
-
-  // Modeli Firestore'a göndermek için
   Map<String, dynamic> toMap() {
     return {
       'name': name,
-      'amount': amount,
       'category': category,
-      'expireDate': expireDate,
+      'amount': amount,
+      'expiryDate': expiryDate,
     };
+  }
+
+  factory Product.fromMap(Map<String, dynamic> map, String id) {
+    return Product(
+      id: id,
+      name: map['name'] ?? '',
+      category: map['category'] ?? '',
+      amount: map['amount'] ?? 0,
+      expiryDate: map['expiryDate'],
+    );
   }
 }

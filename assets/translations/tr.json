@@ -1,0 +1,87 @@
+{
+  "welcome_title": "Afet Çantası",
+  "new_register_title": "Yeni Profil Oluştur",
+  "new_register_subtitle": "Bilgilerini gir ve dijital kimliğini hazırla.",
+  "existing_register_title": "Çanta Tara / Erişim",
+  "existing_register_subtitle": "Mevcut QR kodu ile hızlı erişim sağla.",
+
+  "register_appbar_title": "Kayıt Ol",
+  "register_title": "Profilini Oluştur",
+  "register_subtitle": "Bilgilerini eksiksiz doldur, afet anında hızlı erişim sağlansın.",
+  "label_fullname": "Ad Soyad",
+  "hint_fullname": "Örn: Ahmet Yılmaz",
+  "label_email": "E-posta",
+  "hint_email": "ornek@mail.com",
+  "label_password": "Şifre",
+  "hint_password": "En az 6 karakter",
+  "btn_create_profile": "Profil Oluştur",
+
+  "home_title": "Afet Çantası",
+  "home_empty_title": "Çantanız şu anda boş",
+  "home_empty_subtitle": "Aşağıdaki buton ile ürün ekleyin.",
+  "home_add_item": "Yeni Ürün Ekle",
+  "item_amount": "Adet: {}",
+
+  "add_item_title": "Ürün Ekle",
+  "add_item_info_header": "Ürün Bilgileri",
+  "label_item_name": "Ürün Adı",
+  "hint_item_name": "Örn: Konserve, Bandaj...",
+  "label_item_amount": "Adet / Miktar",
+  "hint_item_amount": "Örn: 2",
+
+  "add_item_category_header": "Kategori Seç",
+
+  "add_item_expiry_header": "Son Kullanma Tarihi",
+  "hint_expiry_date": "Tarih seçin veya tarayın (GG.AA.YYYY)",
+  "tooltip_scan_skt": "Son kullanma tarihi tara",
+
+  "btn_add_to_bag": "Çantaya Ekle",
+
+  "profile_title": "Dijital Kimlik",
+  "profile_health_info": "Sağlık Bilgileri",
+  "profile_blood_type": "Kan Grubu",
+  "profile_allergies": "Alerjiler",
+  "profile_illnesses": "Hastalıklar",
+  "profile_qr_title": "QR Kod",
+  "profile_logout": "Çıkış Yap",
+  "profile_not_entered": "Girilmedi",
+  "profile_not_specified": "Belirtilmedi",
+  "profile_user_placeholder": "Kullanıcı",
+
+  "scanner_title": "Çanta Tara",
+  "scanner_info_text": "QR kodu çerçeve içine hizalayın",
+
+  "cat_food": "Gıda",
+  "cat_health": "Sağlık",
+  "cat_hygiene": "Hijyen",
+  "cat_tools": "Araç-Gereç",
+  "cat_other": "Diğer",
+
+  "dialog_delete_title": "Ürünü Sil",
+  "dialog_delete_content": "{} çantadan kaldırılacak. Emin misiniz?",
+  "btn_cancel": "İptal",
+  "btn_delete": "Sil",
+  "btn_go_back": "Geri Dön",
+
+  "error_empty_field": "Bu alan boş bırakılamaz",
+  "error_email": "Geçerli bir e-posta girin",
+  "error_password_length": "Şifre en az 6 karakter olmalı",
+  "error_register_failed": "Kayıt başarısız!",
+  "error_something_went_wrong": "Bir şeyler yanlış gitti!",
+  "error_invalid_amount": "Geçerli bir sayı girin",
+  "error_no_session": "Aktif oturum bulunamadı.",
+  "error_no_user_data": "Kullanıcı bilgisi bulunamadı.",
+  "error_invalid_bag": "Geçersiz çanta kodu!",
+
+  "error_empty_expiry": "Son kullanma tarihi gerekli",
+  "expiry_scanned_success": "Taranan tarih",
+
+  "ocr_scanner_title": "Tarih Tarayıcı",
+  "ocr_scanner_guide": "Tarihi çerçevenin içine ortalayın ve aşağıdaki butona basın.",
+  "ocr_camera_error": "Kamera başlatılamadı",
+  "ocr_text_error": "Yazı okunurken bir hata oluştu.",
+  "ocr_date_not_found": "Tarih algılanamadı, lütfen tekrar deneyin.",
+  "ocr_found_prefix": "Okundu",
+
+  "ocr_found_text": "Okundu: {}"
+}

@@ -12,6 +12,9 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // ARKADAŞININ KODUNA SADECE BU SATIRI EKLEDİK (HATAYI ÇÖZEN KISIM):
+        isCoreLibraryDesugaringEnabled = true
+
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -25,7 +28,11 @@ android {
         applicationId = "com.example.afet_cantam"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
+
+        // KRİTİK DÜZELTME: Kamera ve ML Kit paketleri en az Android 21 (Lollipop) gerektirir.
+        // flutter.minSdkVersion bazen 16 veya 19 olarak dönebilir. Bu yüzden burayı doğrudan 21 yapıyoruz.
         minSdk = flutter.minSdkVersion
+
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -45,6 +52,8 @@ flutter {
 }
 
 dependencies {
+    implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
 
-  implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
+    // BİLDİRİM PAKETİNİN İSTEDİĞİ DESTEK KÜTÜPHANESİNİ BURAYA EKLEDİK:
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }

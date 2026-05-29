@@ -1,0 +1,87 @@
+{
+  "welcome_title": "Disaster Bag",
+  "new_register_title": "Create New Profile",
+  "new_register_subtitle": "Enter your details and prepare your digital identity.",
+  "existing_register_title": "Scan / Access Bag",
+  "existing_register_subtitle": "Quickly access a bag using an existing QR code.",
+
+  "register_appbar_title": "Sign Up",
+  "register_title": "Create Your Profile",
+  "register_subtitle": "Fill in your information completely so it can be quickly accessed during disasters.",
+  "label_fullname": "Full Name",
+  "hint_fullname": "e.g. John Doe",
+  "label_email": "Email",
+  "hint_email": "example@mail.com",
+  "label_password": "Password",
+  "hint_password": "At least 6 characters",
+  "btn_create_profile": "Create Profile",
+
+  "home_title": "Disaster Bag",
+  "home_empty_title": "Your bag is currently empty",
+  "home_empty_subtitle": "Use the button below to add items.",
+  "home_add_item": "Add New Item",
+  "item_amount": "Qty: {}",
+
+  "add_item_title": "Add Item",
+  "add_item_info_header": "Item Information",
+  "label_item_name": "Item Name",
+  "hint_item_name": "e.g. Canned food, bandage...",
+  "label_item_amount": "Quantity",
+  "hint_item_amount": "e.g. 2",
+
+  "add_item_category_header": "Select Category",
+
+  "add_item_expiry_header": "Expiry Date",
+  "hint_expiry_date": "Select or scan a date (DD.MM.YYYY)",
+  "tooltip_scan_skt": "Scan expiry date",
+
+  "btn_add_to_bag": "Add to Bag",
+
+  "profile_title": "Digital Identity",
+  "profile_health_info": "Health Information",
+  "profile_blood_type": "Blood Type",
+  "profile_allergies": "Allergies",
+  "profile_illnesses": "Illnesses",
+  "profile_qr_title": "QR Code",
+  "profile_logout": "Log Out",
+  "profile_not_entered": "Not Entered",
+  "profile_not_specified": "Not Specified",
+  "profile_user_placeholder": "User",
+
+  "scanner_title": "Scan Bag",
+  "scanner_info_text": "Align the QR code within the frame",
+
+  "cat_food": "Food",
+  "cat_health": "Health",
+  "cat_hygiene": "Hygiene",
+  "cat_tools": "Tools",
+  "cat_other": "Other",
+
+  "dialog_delete_title": "Delete Item",
+  "dialog_delete_content": "This item will be removed from your bag. Are you sure?",
+  "btn_cancel": "Cancel",
+  "btn_delete": "Delete",
+  "btn_go_back": "Go Back",
+
+  "error_empty_field": "This field cannot be empty",
+  "error_email": "Please enter a valid email",
+  "error_password_length": "Password must be at least 6 characters",
+  "error_register_failed": "Registration failed!",
+  "error_something_went_wrong": "Something went wrong!",
+  "error_invalid_amount": "Please enter a valid number",
+  "error_no_session": "No active session found.",
+  "error_no_user_data": "User information not found.",
+  "error_invalid_bag": "Invalid bag code!",
+
+  "error_empty_expiry": "Expiry date is required",
+  "expiry_scanned_success": "Scanned date",
+
+  "ocr_scanner_title": "Date Scanner",
+  "ocr_scanner_guide": "Align the date inside the frame and press the button below.",
+  "ocr_camera_error": "Camera could not be started",
+  "ocr_text_error": "An error occurred while reading text.",
+  "ocr_date_not_found": "No date detected, please try again.",
+  "ocr_found_prefix": "Scanned",
+
+  "ocr_found_text": "Scanned: {}"
+}
