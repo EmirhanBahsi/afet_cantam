@@ -45,6 +45,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             const SizedBox(height: 20),
 
             // Ürün Adı Girişi
+            // deneme sebahat
             _buildInputField(
               controller: _nameController,
               label: "Eşya Adı",
