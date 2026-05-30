@@ -99,32 +99,47 @@ class _ExpiryScannerScreenState extends State<ExpiryScannerScreen> {
   Future<void> _analyzeText(String rawText) async {
     debugPrint("OKUNAN METIN:\n$rawText");
 
-    String cleanText = rawText.toUpperCase();
+    // 🔥 MÜHENDİSLİK DOKUNUŞU: Optik Karakter Düzeltici
+    // ML Kit'in harfleri sayılarla karıştırmasını önden düzeltiyoruz.
+    String cleanText = rawText.toUpperCase()
+        .replaceAll('\n', ' ')
+        .replaceAll('O', '0') // O harfini Sıfır yap
+        .replaceAll('D', '0') // D harfini Sıfır yap (Peynirdeki D507025 -> 0507025)
+        .replaceAll('?', '7') // ? işaretini 7 yap (Peynirdeki 050?2025 -> 05072025)
+        .replaceAll('S', '5')
+        .replaceAll('B', '8')
+        .replaceAll('Z', '2');
 
-    cleanText = cleanText.replaceAll(RegExp(r'(?<=\d)\s+(?=[./-])|(?<=[./-])\s+(?=\d)'), '');
-
-    final RegExp dateRegex = RegExp(
-      r'\b(0[1-9]|[12]\d|3[01])[./-](0[1-9]|1[0-2])[./-](\d{4}|\d{2})\b',
-    );
+    // 🚀 YENİ: Ayıraç (nokta/çizgi) olmasa bile bitişik sayıları yakalayan esnek Regex
+    final RegExp dateRegex = RegExp(r'(\d{2})[./\s,-]*(\d{2})[./\s,-]*(\d{2,4})');
+    List<DateTime> parsedDates = [];
 
     final Iterable<RegExpMatch> matches = dateRegex.allMatches(cleanText);
 
-    if (matches.isNotEmpty) {
-      String detectedDate = matches.first.group(0)!;
+    for (final match in matches) {
+      try {
+        int day = int.parse(match.group(1)!);
+        int month = int.parse(match.group(2)!);
+        int year = int.parse(match.group(3)!);
 
+        if (year < 100) year += 2000;
 
-      final parts = detectedDate.split(RegExp(r'[./-]'));
-      if (parts.length == 3) {
-        String day = parts[0];
-        String month = parts[1];
-        String year = parts[2];
-
-        if (year.length == 2) {
-          year = "20$year";
+        // Mantıklı bir tarih mi kontrol et (Örn: Ay 13 olamaz)
+        if (day > 0 && day <= 31 && month > 0 && month <= 12) {
+          parsedDates.add(DateTime(year, month, day));
         }
-
-        detectedDate = "$day.$month.$year";
+      } catch (e) {
+        // Hata olursa diğerine geç
       }
+    }
+
+    if (parsedDates.isNotEmpty) {
+      // 🚀 HELVA ÇÖZÜMÜ: Birden fazla tarih varsa, en ilerideki tarihi (Son Kullanma Tarihini) al
+      DateTime expiryDate = parsedDates.reduce((a, b) => a.isAfter(b) ? a : b);
+
+      String day = expiryDate.day.toString().padLeft(2, '0');
+      String month = expiryDate.month.toString().padLeft(2, '0');
+      String detectedDate = "$day.$month.${expiryDate.year}";
 
       setState(() {
         _isSuccess = true;
