@@ -157,31 +157,115 @@ class _ExpiryScannerScreenState extends State<ExpiryScannerScreen> {
   Future<void> _analyzeText(String rawText) async {
     debugPrint("KAMERADAN OKUNAN HAM METIN:\n$rawText");
 
-    // 1. Önce tüm boşlukları, çift noktaları ve gereksiz karakterleri temizleyerek normalize ediyoruz.
-    // 'S. K. T.: 09/2027' verisi artık 'S.K.T.09/2027' veya benzeri temiz bir stringe dönüşüyor.
-    String cleanText = rawText.toUpperCase().replaceAll(RegExp(r'\s+'), '');
+        // OCR sonucunu normalize ediyoruz.
+    // Harf/sayı karışıklıklarını azaltmak için yaygın OCR hatalarını düzeltiyoruz.
+    String cleanText = rawText
+        .toUpperCase()
+        .replaceAll('\n', ' ')
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll('O', '0')
+        .replaceAll('D', '0')
+        .replaceAll('?', '7')
+        .replaceAll('S', '5')
+        .replaceAll('B', '8')
+        .replaceAll('Z', '2');
 
-    // 2. Kural: Standart Tam Tarih (GG.AA.YYYY veya GG/AA/YY vb.)
+    // GG.AA.YYYY, GG/AA/YY, GG-AA-YYYY vb.
+    // Ayraç olmasa da çalışır.
     final RegExp standardDateRegex = RegExp(
       r'(0[1-9]|[12]\d|3[01])[./-]?(0[1-9]|1[0-2])[./-]?(\d{4}|\d{2})',
     );
+
+    // AA/YYYY, AA.YYYY, AA/YY veya 092027 gibi formatlar.
+    final RegExp monthYearRegex = RegExp(
+      r'(0[1-9]|1[0-2])[./-]?(\d{4}|\d{2})',
+    );
+
+    // Önce tam tarihleri buluyoruz.
+    final matches = standardDateRegex.allMatches(cleanText);
+
+    List<DateTime> parsedDates = [];
+
+    for (final match in matches) {
+      try {
+        int day = int.parse(match.group(1)!);
+        int month = int.parse(match.group(2)!);
+        int year = int.parse(match.group(3)!);
+
+        if (year < 100) {
+          year += 2000;
+        }
+
+        final date = DateTime(year, month, day);
+
+        // DateTime 31 Şubat gibi geçersiz tarihleri otomatik
+        // başka bir güne çevirebildiği için tekrar kontrol ediyoruz.
+        if (date.year == year &&
+            date.month == month &&
+            date.day == day) {
+          parsedDates.add(date);
+        }
+      } catch (e) {
+        debugPrint("Tarih parse hatası: $e");
+      }
+    }
+
+    if (parsedDates.isNotEmpty) {
+      // Birden fazla tarih bulunursa en ileri tarihi seçiyoruz.
+      // Örneğin üretim tarihi + SKT varsa SKT'yi alma ihtimalimiz artar.
+      final DateTime expiryDate = parsedDates.reduce(
+        (a, b) => a.isAfter(b) ? a : b,
+      );
+
+      final String day = expiryDate.day.toString().padLeft(2, '0');
+      final String month = expiryDate.month.toString().padLeft(2, '0');
+      final String detectedDate =
+          "$day.$month.${expiryDate.year}";
+
+      _onSuccessFound(detectedDate);
+    } else {
+      // Tam tarih bulunamadıysa sadece ay/yıl arıyoruz.
+      final Match? myMatch = monthYearRegex.firstMatch(cleanText);
+
+      if (myMatch != null) {
+        String month = myMatch.group(1)!;
+        String year = myMatch.group(2)!;
+
+        if (year.length == 2) {
+          year = "20$year";
+        }
+
+        // Gün belirtilmediğinde 01 kabul ediyoruz.
+        final String fallbackDate = "01.$month.$year";
+
+        _onSuccessFound(fallbackDate);
+      } else {
+        // Hiçbir tarih bulunamadıysa kamerayı tekrar çalıştırıyoruz.
+        await _cameraController?.resumePreview();
+
+        setState(() => _isProcessing = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "tarih_bulunamadi".tr() == "tarih_bulunamadi"
+                    ? "Tarih algılanamadı, lütfen tekrar deneyin."
+                    : "tarih_bulunamadi".tr(),
+              ),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
+    }
 
     // 3. Kural: Sadece Ay ve Yıl Olan Tarih (AA/YYYY veya AA.YYYY veya AA/YY vb.)
     // İlaç kutularındaki '09/2027' veya '092027' gibi durumları yakalar.
     final RegExp monthYearRegex = RegExp(r'(0[1-9]|1[0-2])[./-]?(\d{4}|\d{2})');
 
-    // Önce tam tarih var mı diye bakıyoruz
-    final Match? match = standardDateRegex.firstMatch(cleanText);
 
-    if (match != null) {
-      String day = match.group(1)!;
-      String month = match.group(2)!;
-      String year = match.group(3)!;
-
-      if (year.length == 2) year = "20$year";
-      String detectedDate = "$day.$month.$year";
-
-      _onSuccessFound(detectedDate);
     } else {
       // Eğer tam tarih yoksa, SADECE AY VE YIL VAR MI diye bakıyoruz (İlaçlar için kritik adım)
       final Match? myMatch = monthYearRegex.firstMatch(cleanText);
