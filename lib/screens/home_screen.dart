@@ -35,10 +35,15 @@ class HomeScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 15.0),
             child: GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen(bagId: bagId)),
-              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                  // Kendi elindeki bagId bilgisini profil sayfasına pasla!
+                  builder: (context) => ProfileScreen(bagId: bagId), 
+                  ),
+                );
+              },
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(

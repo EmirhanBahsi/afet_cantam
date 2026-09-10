@@ -6,6 +6,7 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Giriş Yap Fonksiyonu
   Future<bool> loginWithEmail(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(
@@ -18,6 +19,7 @@ class AuthService {
     }
   }
 
+  // Kayıt Ol Fonksiyonu (Arkadaşının tespiti doğrultusunda 'bag_id' eklendi)
   Future<bool> registerWithEmail(
       String email,
       String password,
@@ -30,10 +32,12 @@ class AuthService {
       );
 
       if (result.user != null) {
+        // Web sitesinin tarama yaparken aradığı 'bag_id' alanını buraya sabitledik
         await _firestore.collection('users').doc(result.user!.uid).set({
           'uid': result.user!.uid,
           'name': name,
           'email': email.trim(),
+          'bag_id': result.user!.uid, // Web sitesi tarayıcısının okuyacağı kritik alan
           'bloodType': 'profile_not_entered',
           'allergies': 'profile_not_specified',
           'chronicIllness': 'profile_not_specified',
@@ -49,6 +53,7 @@ class AuthService {
     }
   }
 
+  // Çanta ID Geçerliliği Sorgulama
   Future<bool> checkBagId(String scannedId) async {
     try {
       var result = await _firestore
@@ -62,6 +67,7 @@ class AuthService {
     }
   }
 
+  // Çantaya Ürün Ekleme
   Future<void> addProduct(String bagId, Product product) async {
     try {
       await _firestore
@@ -74,6 +80,7 @@ class AuthService {
     }
   }
 
+  // Sağlık Profili Güncelleme
   Future<void> updateHealthProfile(
       String uid,
       String bloodType,
@@ -91,6 +98,7 @@ class AuthService {
     }
   }
 
+  // Oturumu Kapat
   Future<void> signOut() async {
     await _auth.signOut();
   }

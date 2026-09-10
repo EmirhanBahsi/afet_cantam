@@ -69,7 +69,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
         name: _nameController.text.trim(),
         category: _selected,
         amount: int.parse(_amountController.text.trim()),
-        expiryDate: _selected == 'Gıda' ? _expiryController.text.trim() : null,
+        expiryDate: (_selected == 'Gıda' || _selected == 'Sağlık')
+            ? _expiryController.text.trim()
+            : null,
       );
 
       // 1. Ürünü veritabanına ekliyoruz
@@ -90,18 +92,24 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
             // Son kullanma tarihinden kaç gün önce haber versin? (Örn: 7 gün önce)
             // Son kullanma tarihini tamamen boşverip, ürünü eklediğin andan tam 1 dakika sonrasına alarm kurar
-            DateTime notificationDateTime = DateTime.now().add(const Duration(minutes: 1));
+            DateTime notificationDateTime = DateTime.now().add(
+              const Duration(minutes: 1),
+            );
 
             // Eğer hesaplanan bildirim tarihi bugünden ilerideyse bildirimi kur
             if (notificationDateTime.isAfter(DateTime.now())) {
               // Ürün ismi ve tarih kombinasyonundan benzersiz bir ID üretiyoruz (İptal edebilmek için)
-              int notificationId = (_nameController.text.trim() + _expiryController.text).hashCode.abs();
+              int notificationId =
+                  (_nameController.text.trim() + _expiryController.text)
+                      .hashCode
+                      .abs();
 
               // notification_service.dart dosyasını en üste import etmeyi unutma!
               await NotificationService().scheduleNotification(
                 id: notificationId,
                 title: "Afet Çantası Uyarısı! 🚨",
-                body: "${_nameController.text.trim()} ürününün son kullanma tarihine 1 hafta kaldı!",
+                body:
+                    "${_nameController.text.trim()} ürününün son kullanma tarihine 1 hafta kaldı!",
                 scheduledDate: notificationDateTime,
               );
             }
@@ -118,7 +126,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
           SnackBar(
             content: Text('error_something_went_wrong'.tr()),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
         );
       }
@@ -156,9 +166,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future<void> _startExpiryScanner() async {
     final scannedDate = await Navigator.push<String>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const ExpiryScannerScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const ExpiryScannerScreen()),
     );
 
     if (scannedDate != null && mounted) {
@@ -209,8 +217,11 @@ class _AddProductScreenState extends State<AddProductScreen> {
               child: CircleAvatar(
                 backgroundColor: Colors.white.withOpacity(0.2),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                      size: 18, color: Colors.white),
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 18,
+                    color: Colors.white,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -239,7 +250,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             blurRadius: 40,
             color: const Color(0xFF0F172A).withOpacity(.04),
             offset: const Offset(0, 12),
-          )
+          ),
         ],
       ),
       child: Form(
@@ -261,7 +272,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               hint: 'hint_item_name'.tr(),
               icon: Icons.inventory_2_outlined,
               validator: (v) =>
-              v == null || v.isEmpty ? 'error_empty_field'.tr() : null,
+                  v == null || v.isEmpty ? 'error_empty_field'.tr() : null,
             ),
             const SizedBox(height: 16),
             _field(
@@ -288,7 +299,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
             const SizedBox(height: 12),
             _buildCategoryDropdown(),
 
-            if (_selected == 'Gıda') ...[
+            if (_selected == 'Gıda' || _selected == 'Sağlık') ...[
               const SizedBox(height: 20),
               Text(
                 'add_item_expiry_header'.tr(),
@@ -309,14 +320,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.qr_code_scanner_rounded, color: Color(0xFF6366F1)),
+                      icon: const Icon(
+                        Icons.qr_code_scanner_rounded,
+                        color: Color(0xFF6366F1),
+                      ),
                       tooltip: 'tooltip_scan_skt'.tr(),
                       onPressed: _startExpiryScanner,
                     ),
                   ],
                 ),
                 validator: (v) {
-                  if (_selected == 'Gıda' && (v == null || v.isEmpty)) {
+                  if ((_selected == 'Gıda' || _selected == 'Sağlık') &&
+                      (v == null || v.isEmpty)) {
                     return 'error_empty_expiry'.tr();
                   }
                   return null;
@@ -332,7 +347,9 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6366F1),
                   foregroundColor: Colors.white,
-                  disabledBackgroundColor: const Color(0xFF94A3B8).withOpacity(0.5),
+                  disabledBackgroundColor: const Color(
+                    0xFF94A3B8,
+                  ).withOpacity(0.5),
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -344,16 +361,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                 ),
                 child: _loading
                     ? const SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
                     : Text('btn_add_to_bag'.tr()),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -363,12 +382,19 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<String>(
       value: _selected,
-      style: const TextStyle(color: Color(0xFF0F172A), fontSize: 15, fontWeight: FontWeight.w600),
+      style: const TextStyle(
+        color: Color(0xFF0F172A),
+        fontSize: 15,
+        fontWeight: FontWeight.w600,
+      ),
       dropdownColor: Colors.white,
       decoration: InputDecoration(
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,
@@ -401,7 +427,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
         if (val != null) {
           setState(() {
             _selected = val;
-            if (_selected != 'Gıda') {
+            // Eğer yeni seçilen kategori hem Gıda hem Sağlık değilse (Hijyen veya Araç-Gereç ise) tarihi temizle:
+            if (_selected != 'Gıda' && _selected != 'Sağlık') {
               _expiryController.clear();
             }
           });
@@ -436,7 +463,10 @@ class _AddProductScreenState extends State<AddProductScreen> {
         suffixIcon: suffix,
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide.none,

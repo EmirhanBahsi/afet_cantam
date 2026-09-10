@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'register_screen.dart';
+import 'welcome_screen.dart'; // Çıkış yapınca ana karşılama ekranına dönmek için
 
 class ProfileScreen extends StatelessWidget {
   final String? bagId;
@@ -10,6 +10,13 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Cihazda aktif bir Firebase Auth oturumu var mı kontrol et
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+
+    // 2. Sorgulanacak gerçek ID'yi belirle: 
+    // Eğer QR ile girildiyse 'bagId' doludur, Auth ile girildiyse 'currentUser.uid' kullanılır.
+    final String? targetId = bagId ?? currentUser?.uid;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -18,77 +25,61 @@ class ProfileScreen extends StatelessWidget {
         elevation: 0,
         foregroundColor: Colors.black,
       ),
-      // Auth durumunu dinliyoruz
-      body: StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, authSnapshot) {
-          // 1. Veri henüz geliyorsa bekle
-          if (authSnapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFD32F2F)));
-          }
+      // Eğer ne QR kodu var ne de aktif oturum varsa hata göster
+      body: targetId == null
+          ? _buildErrorState(context, "Görüntülenecek çanta veya oturum bilgisi bulunamadı.")
+          : StreamBuilder<DocumentSnapshot>(
+              // Doğrudan hedef ID'ye ait veritabanı dökümanını dinliyoruz
+              stream: FirebaseFirestore.instance.collection('users').doc(targetId).snapshots(),
+              builder: (context, dbSnapshot) {
+                if (dbSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFFD32F2F)));
+                }
 
-          final user = authSnapshot.data;
+                if (!dbSnapshot.hasData || !dbSnapshot.data!.exists) {
+                  return _buildErrorState(context, "Kullanıcı detayları veritabanında bulunamadı.");
+                }
 
-          // 2. Eğer kullanıcı gerçekten null ise (Oturum yoksa)
-          if (user == null) {
-            return _buildErrorState(context, "Aktif bir oturum bulunamadı. Lütfen tekrar giriş yapın.");
-          }
+                var userData = dbSnapshot.data!.data() as Map<String, dynamic>;
 
-          // 3. Kullanıcı varsa Firestore verisini çek
-          return StreamBuilder<DocumentSnapshot>(
-            stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
-            builder: (context, dbSnapshot) {
-              if (dbSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator(color: Color(0xFFD32F2F)));
-              }
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Column(
+                    children: [
+                      // Profil Başlık Bölümü (E-posta yoksa varsayılan metin basar)
+                      _buildProfileHeader(userData, userData['email'] ?? "QR ile Giriş Yapıldı"),
+                      const SizedBox(height: 30),
 
-              // Veri yoksa veya döküman silinmişse
-              if (!dbSnapshot.hasData || !dbSnapshot.data!.exists) {
-                return _buildErrorState(context, "Kullanıcı detayları veritabanında bulunamadı.");
-              }
+                      // Sağlık Bilgileri Kartı
+                      _buildModernInfoCard(
+                        title: "Sağlık Bilgileri",
+                        icon: Icons.medical_services_rounded,
+                        color: const Color(0xFFD32F2F),
+                        items: {
+                          "Kan Grubu": userData['bloodType'] ?? "Girilmemiş",
+                          "Alerjiler": userData['allergies'] ?? "Belirtilmemiş",
+                          "Hastalıklar": userData['chronicIllness'] ?? "Belirtilmemiş",
+                        },
+                      ),
+                      const SizedBox(height: 20),
 
-              var userData = dbSnapshot.data!.data() as Map<String, dynamic>;
+                      // QR Kod Kartı (Veritabanındaki bag_id'yi basar)
+                      _buildQRCard(userData['bag_id'] ?? targetId),
+                      const SizedBox(height: 30),
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: Column(
-                  children: [
-                    // Profil Başlık Bölümü
-                    _buildProfileHeader(userData, user.email),
-                    const SizedBox(height: 30),
-
-                    // Sağlık Bilgileri Kartı
-                    _buildModernInfoCard(
-                      title: "Sağlık Bilgileri",
-                      icon: Icons.medical_services_rounded,
-                      color: const Color(0xFFD32F2F),
-                      items: {
-                        "Kan Grubu": userData['bloodType'] ?? "Girilmemiş",
-                        "Alerjiler": userData['allergies'] ?? "Belirtilmemiş",
-                        "Hastalıklar": userData['chronicIllness'] ?? "Belirtilmemiş",
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // QR Kod Kartı
-                    _buildQRCard(bagId ?? user.uid),
-                    const SizedBox(height: 30),
-
-                    // Oturumu Kapat Butonu
-                    _buildLogoutButton(context),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
+                      // Oturumu Kapat / Giriş Ekranına Dön Butonu
+                      _buildLogoutButton(context),
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 
-  // --- YARDIMCI WIDGET'LAR ---
+  // --- YARDIMCI BİLEŞENLER (WIDGETS) ---
 
-  Widget _buildProfileHeader(Map<String, dynamic> data, String? email) {
+  Widget _buildProfileHeader(Map<String, dynamic> data, String email) {
     return Center(
       child: Column(
         children: [
@@ -103,7 +94,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 15),
           Text(data['name'] ?? "Kullanıcı", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          Text(email ?? "", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+          Text(email, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
         ],
       ),
     );
@@ -113,9 +104,9 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))],
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(25), 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +115,13 @@ class ProfileScreen extends StatelessWidget {
           const Divider(height: 30),
           ...items.entries.map((e) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(e.key, style: TextStyle(color: Colors.grey[600])), Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold))]),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+              children: [
+                Text(e.key, style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w500)), 
+                Text(e.value, style: const TextStyle(fontWeight: FontWeight.bold))
+              ]
+            ),
           )),
         ],
       ),
@@ -135,16 +132,33 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]),
+      decoration: BoxDecoration(
+        color: Colors.white, 
+        borderRadius: BorderRadius.circular(25), 
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, 5))]
+      ),
       child: Column(
         children: [
-          const Text("Erişim Karekodu", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 15),
+          const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.qr_code_2_rounded, color: Colors.blueGrey),
+              SizedBox(width: 8),
+              Text("Erişim Karekodu", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 20),
           QrImageView(
             data: data,
             size: 180.0,
             eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFFD32F2F)),
             dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.circle, color: Colors.black),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Kod Verisi: $data",
+            style: const TextStyle(color: Colors.grey, fontSize: 11, letterSpacing: 0.5),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -154,11 +168,17 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildLogoutButton(BuildContext context) {
     return TextButton.icon(
       onPressed: () async {
+        // Hem Firebase oturumunu kapat hem de en baş karşılama ekranına güvenle dön
         await FirebaseAuth.instance.signOut();
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const RegisterScreen()), (route) => false);
+        if (context.mounted) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()), 
+            (route) => false
+          );
+        }
       },
       icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-      label: const Text("Oturumu Kapat", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+      label: const Text("Çıkış Yap", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -174,7 +194,11 @@ class ProfileScreen extends StatelessWidget {
             child: Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16)),
           ),
           const SizedBox(height: 20),
-          ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text("Geri Dön")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD32F2F), foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(context), 
+            child: const Text("Geri Dön")
+          ),
         ],
       ),
     );

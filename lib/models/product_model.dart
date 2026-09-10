@@ -5,11 +5,6 @@ class Product {
   final int amount;
   final String? expiryDate;
 
-  /* Modele son kullanma tarihini ekledim
-  eğer db den çekeceksen orada da eklemelisin yoksa
-  null olarak gözükecektir.
-   */
-
   Product({
     required this.id,
     required this.name,
